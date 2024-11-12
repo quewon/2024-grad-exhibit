@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        img {
+            max-height: 300px;
+        }
+    </style>
+</head>
+<body>
+
+    이미지 업로드
+
+    <br>
+
+    <input type="file" accept="image/*">
+
+    <br>
+
+    <img src="">
+
+    <br>
+
+    <input type="button" value="업로드" disabled>
+    
+</body>
+
+<script src="js/heic2any.min.js"></script>
+<script>
+    var input = document.querySelector("input[type='file']");
+    var image = document.querySelector("img");
+    var upload_button = document.querySelector("input[type='button']");
+
+    var selected_file;
+
+    input.onchange = async e => {
+        var [file] = input.files;
+        if (file) {
+            if (file.type == 'image/heic') {
+                var result = await heic2any({
+                    blob: file,
+                    toType: 'image/jpeg'
+                });
+
+                file = new File([result], file.name.split('.')[0] + ".jpg");
+            }
+
+            image.src = URL.createObjectURL(file);
+            selected_file = file;
+
+            console.log(file);
+
+            upload_button.disabled = false;
+        }
+    }
+
+    upload_button.onclick = async e => {
+        var form = new FormData();
+
+        form.append("file", selected_file);
+
+        var json = await fetch('/upload', {
+            method: 'POST',
+            body: form
+        })
+        .then(res => res.json())
+        .catch(err => {
+            console.log(error);
+        })
+
+        if (json && json.path) {
+            document.body.innerHTML += `<a href='${json.path}'>이미지가 성공적으로 업로드됐습니다.</a>`
+        } else {
+            alert('에러가 발생했습니다.');
+        }
+    }
+</script>
+
+</html>
