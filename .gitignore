@@ -1,7 +1,7 @@
-mobile\ website/node_modules
-local\ printing\ website/node_modules
-mobile\ website/db
-mobile\ website/photos
+mobile-website/node_modules
+local-printing-website/node_modules
+mobile-website/db
+mobile-website/photos
 .DS_Store
 ._.DS_Store
 **/.DS_Store
