@@ -46,11 +46,11 @@
 
             await fetch(server + '/update', {
                 method: 'POST',
-                body,
-                mode: 'cors'
+                body
             })
-            .then(() => console.log("updated server"))
             .catch(err => console.log(err));
+
+            console.log("updated server");
         }
 
         var json = await fetch(server + '/photos', {
@@ -96,6 +96,7 @@
                 dragging_image = this;
                 document.onmouseup = function() {
                     dragging_image = null;
+                    update();
                 }
             }.bind(img);
 
@@ -111,6 +112,7 @@
                     images[this.dataset.photo_id].position = "{}";
                 }
                 images[this.dataset.photo_id].needs_update = true;
+                update();
             }.bind(img);
 
             img.draggable = false;
@@ -127,7 +129,6 @@
             let x = e.pageX / window.innerWidth;
             let y = e.pageY / window.innerHeight;
             images[dragging_image.dataset.photo_id].position = "{x:" + x + ",y:" + y + "}";
-            
             images[dragging_image.dataset.photo_id].needs_update = true;
         }
     }
