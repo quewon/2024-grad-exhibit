@@ -103,10 +103,10 @@
             img.oncontextmenu = function(e) {
                 e.preventDefault();
                 this.classList.toggle("invisible");
-                if (this.classList.contains("invisible")) {
+                if (!this.classList.contains("invisible")) {
                     let box = this.getBoundingClientRect();
-                    let x = box.left / window.innerWidth;
-                    let y = box.top / window.innerHeight;
+                    let x = (box.left + box.width/2) / window.innerWidth;
+                    let y = (box.top + box.height/2) / window.innerHeight;
                     images[this.dataset.photo_id].position = "{x:" + x + ",y:" + y + "}";
                 } else {
                     images[this.dataset.photo_id].position = "{x:null}";
@@ -129,7 +129,8 @@
             let x = e.pageX / window.innerWidth;
             let y = e.pageY / window.innerHeight;
             images[dragging_image.dataset.photo_id].position = "{x:" + x + ",y:" + y + "}";
-            images[dragging_image.dataset.photo_id].needs_update = true;
+            if (!dragging_image.classList.contains("invisible"))
+                images[dragging_image.dataset.photo_id].needs_update = true;
         }
     }
 
