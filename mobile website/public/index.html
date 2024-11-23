@@ -3,38 +3,387 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>데이터가든</title>
     <style>
-        img {
-            max-height: 300px;
+        @font-face {
+            font-family: 'Pretendard-Regular';
+            src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+            font-style: normal;
+        }
+
+        body, html {
+            margin: 0;
+            height: 100vh;
+            height: 100svh;
+            overflow: hidden;
+        }
+        body {
+            background: url("res/bg.png");
+            background-size: cover;
+            font-family: 'Pretendard-Regular', sans-serif;
+            color: white;
+            font-size: 16px;
+        }
+
+        .drop-shadow {
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, .8));
+        }
+        .text-shadow {
+            text-shadow: 0 0 15px rgba(255, 255, 255, .8);
+        }
+
+        /* pages */
+
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 1;
+            transition: opacity 1s;
+        }
+
+        #main {
+            padding: 1.5em;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2em;
+            font-size: 20px;
+        }
+        #main img {
+            width: 80%;
+        }
+
+        .hidden {
+            display: none;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /*  */
+
+        #intro, #chat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .center {
+            line-height: 1.7em;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        main {
+            flex-grow: 1;
+        }
+
+        header, footer, main {
+            box-sizing: border-box;
+        }
+
+        header, footer {
+            flex-grow: 0;
+            flex-shrink: 0;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        header {
+            padding: 2em;
+            padding-bottom: 0;
+        }
+
+        button {
+            background: transparent;
+            border: none;
+            padding: 0;
+            border-radius: 0;
+        }
+
+        header button {
+            position: absolute;
+            top: 2.5em;
+            left: 2.5em;
+        }
+        header button img {
+            height: 1.25em;
+        }
+        .title-image {
+            height: 1.5em;
+        }
+
+        footer {
+            padding: 3em;
+            overflow: visible;
+            display: flex;
+            justify-content: center;
+            padding-top: 0;
+        }
+        footer button {
+            border-radius: 50%;
+            padding: 1.1em;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(to right,rgba(255, 255, 255, .2), rgba(255, 255, 255, 0) 100%);
+            box-shadow: -.5px -.5px 2px #DCF1FF, 0 0 30px rgba(255, 255, 255, .8);
+            width: 5em;
+        }
+        footer button img {
+            width: 100%;
+        }
+
+        /* chat */
+
+        input {
+            display: none;
+        }
+
+        .message-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            overflow-y: scroll;
+            padding: 2em;
+            padding-top: 1.5em;
+            margin-top: 1em;
+            padding-bottom: 1.5em;
+            margin-bottom: 1em;
+
+            mask: linear-gradient(to bottom,
+                rgba(0,0,0, 0) 0,
+                rgba(0,0,0, 1) 5%,   rgba(0,0,0, 1) 95%, 
+                rgba(0,0,0, 0) 100%, rgba(0,0,0, 0) 0
+            ) 100% 50% / 100% 100% repeat-x;
+        }
+
+        .message {
+            white-space: pre-line;
+            padding: .75em 1em;
+            border-radius: 1em;
+            background: linear-gradient(to right,rgba(255, 255, 255, .2), rgba(255, 255, 255, 0) 100%);
+            filter: drop-shadow(0 0 10px rgba(0, 0, 0, .2));
+            -webkit-backdrop-filter: blur(3px);
+            backdrop-filter: blur(3px);
+            position: relative;
+            box-shadow: -.3px 0 2px #DCF1FF;
+            width: fit-content;
+            max-width: 70%;
+            margin-bottom: .75em;
+
+            animation: pop-up 1s;
+        }
+        .message:last-child {
+            margin-bottom: 0;
+        }
+        .message.left {
+            border-bottom-left-radius: 0;
+        }
+        .message.right {
+            align-self: flex-end;
+            border-bottom-right-radius: 0;
+        }
+        
+        .message img {
+            width: 100%;
+        }
+
+        @keyframes pop-up {
+            0% {
+                transform: translate(0, .3em);
+                opacity: 0;
+            }
+            100% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+        }
+
+        .message.delete {
+            position: absolute;
+            animation: pop-away 500ms;
+        }
+
+        @keyframes pop-away {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-.5em, -1em);
+                opacity: 0;
+            }
+        }
+
+        .loading-bubbles {
+            display: flex;
+            gap: 5px;
+            height: 1ch;
+            align-items: center;
+        }
+        .loading-bubbles > div {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: white;
+            animation: blink 1s infinite;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, .8));
+        }
+        .loading-bubbles > div:first-child {
+            animation-delay: -0.66s;
+        }
+        .loading-bubbles > div:nth-child(2) {
+            animation-delay: -0.33s;
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: 1
+            }
+            50% {
+                opacity: .5
+            }
+            100% {
+                opacity: 1
+            }
+        }
+
+        canvas {
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    이미지 업로드
+    <div class="page" id="main" onclick="goto('intro')">
+        <img class="drop-shadow" src="res/title.svg" alt="데이터가든">
+        <img src="res/mainshape.svg">
+        <div class="text-shadow">입장하기</div>
+    </div>
 
-    <br>
+    <div class="page hidden" id="intro">
+        <header>
+            <button onclick="goto('main')"><img src="res/arrow-left.svg" alt="뒤로"></button>
+            <img class="title-image" src="res/title-small.svg" alt="데이터가든">
+        </header>
+        <main onclick="goto('chat')">
+            <p class="center text-shadow">
+                데이터가든에 오신<br>
+                여러분을 환영합니다.<br>
+                데이터가든의 식물은<br>
+                여러분의 행동을<br>
+                먹고 자라납니다.<br>
+                쑥쑥 자라납니다.<br>
+                쑥쑥 불어납니다.<br>
+                쑥쑥 쌓여갑니다.
+            </p>
+        </main>
+    </div>
 
-    <input type="file" accept="image/*">
+    <div class="page hidden" id="chat">
+        <header>
+            <button onclick="goto('main')"><img src="res/arrow-left.svg" alt="뒤로"></button>
+            <img class="title-image" src="res/title-small.svg" alt="데이터가든">
+        </header>
+        <main class="message-container">
+            
+        </main>
+        <footer>
+            <button onclick="this.nextElementSibling.click()"><img src="res/photo-button.svg" alt="사진 올리기"></button>
+                <input type="file" accept="image/*">
+        </footer>
+    </div>
 
-    <br>
-
-    <img src="">
-
-    <br>
-
-    <input type="button" value="업로드" disabled>
+    <canvas></canvas>
     
 </body>
 
 <script src="js/heic2any.min.js"></script>
 <script>
-    var input = document.querySelector("input[type='file']");
-    var image = document.querySelector("img");
-    var upload_button = document.querySelector("input[type='button']");
+    function wait(seconds) {
+        return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+    }
 
+    //
+
+    var returned_to_home = true;
+
+    const pages = document.querySelectorAll(".page");
+
+    async function goto(id) {
+        for (let page of pages) {
+            page.classList.add("hidden");
+        }
+        await wait(.5);
+        document.getElementById(id).classList.remove("hidden");
+
+        if (id == 'chat') {
+            returned_to_home = false;
+            while (message_container.firstElementChild) {
+                message_container.firstElementChild.remove();
+            }
+            await write("left", "나의 식물은 어떤 모습일까요?");
+            await write("left", "원하는 이미지를 골라주세요!");
+        } else {
+            returned_to_home = true;
+        }
+    }
+
+    //
+
+    var message_container = document.querySelector(".message-container");
+
+    async function write(side, text, ishtml) {
+        var message = document.createElement("div");
+        message.className = "message " + side;
+        if (ishtml) {
+            message.innerHTML = text;
+        } else {
+            if (side == 'left') {
+                var is_typing = await write('left', '<div class="loading-bubbles"><div></div><div></div><div></div></div>', true);
+                await wait(text.length * .1);
+
+                if (returned_to_home) {
+                    is_typing.remove();
+                    return;
+                }
+
+                let box = is_typing.getBoundingClientRect();
+                is_typing.classList.add("delete");
+                is_typing.style.left = box.left + "px";
+                is_typing.style.top = box.top + "px";
+                is_typing.onanimationend = function() {
+                    this.remove();
+                }.bind(is_typing);
+            }
+            message.innerHTML = '<div class="text-shadow">' + text + '</div>';
+        }
+
+        if (returned_to_home) return;
+
+        message_container.appendChild(message);
+        message_container.scrollTop = message_container.scrollHeight;
+
+        await wait(1);
+
+        return message;
+    }
+
+    //
+
+    var input = document.querySelector("input[type='file']");
     var selected_file;
+
+    var canvas = document.querySelector("canvas");
+    var context = canvas.getContext("2d");
 
     input.onchange = async e => {
         var [file] = input.files;
@@ -48,16 +397,37 @@
                 file = new File([result], file.name.split('.')[0] + ".jpg");
             }
 
-            image.src = URL.createObjectURL(file);
-            selected_file = file;
+            var img = await new_img(URL.createObjectURL(file));
+            canvas.height = Math.min(img.naturalWidth, img.naturalHeight);
+            canvas.width = canvas.height / 1.5;
+            context.drawImage(
+                img, 
+                -(img.naturalWidth - canvas.width) / 2, 
+                -(img.naturalHeight - canvas.height) / 2
+            );
+            canvas.toBlob(async blob => {
+                selected_file = blob;
+                let src = URL.createObjectURL(blob);
 
-            console.log(file);
+                await write('right', '<img src="'+ src +'">', true);
+                await write('right', "이걸로 할게요.");
+                await write('left', "이미지 준비 중...");
 
-            upload_button.disabled = false;
+                upload();
+            });
         }
     }
 
-    upload_button.onclick = async e => {
+    function new_img(src) {
+        return new Promise((resolve, reject) => {
+            let img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = src;
+        })
+    }
+
+    async function upload() {
         var form = new FormData();
 
         form.append("file", selected_file);
@@ -72,9 +442,9 @@
         })
 
         if (json && json.path) {
-            document.body.innerHTML += `<a href='${json.path}'>이미지가 성공적으로 업로드됐습니다.</a>`
+            await write('left', "프린터기에서 나온 이미지를\n전시해 식물을 만나보세요 :)");
         } else {
-            alert('에러가 발생했습니다.');
+            alert('에러가 발생했습니다. 전시 담당자를 찾아주시길 바랍니다.');
         }
     }
 </script>

@@ -25,7 +25,7 @@ if (!fs.existsSync('db/db.db')) {
 
 exports.db = db;
 
-exports.insert = (db, table, obj) => {
+exports.insert = (table, obj) => {
     var keynames = "";
     var keys = "";
     for (let key in obj) {
@@ -39,7 +39,7 @@ exports.insert = (db, table, obj) => {
     return stmt.run(obj);
 }
 
-exports.delete = (db, table, obj) => {
+exports.delete = (table, obj) => {
     var conditions = "";
     for (let key in obj) {
         conditions += "WHERE " + key + "=@" + key + " AND ";
@@ -50,7 +50,7 @@ exports.delete = (db, table, obj) => {
     return stmt.run(obj);
 }
 
-exports.update = (db, table, where, set) => {
+exports.update = (table, where, set) => {
     var obj = {};
 
     var where_conditions = "";
@@ -71,7 +71,7 @@ exports.update = (db, table, where, set) => {
     return stmt.run(obj);
 }
 
-exports.query = (db, table, obj) => {
+exports.query = (table, obj) => {
     var conditions = "";
     for (let key in obj) {
         conditions += "WHERE " + key + "=@" + key + " AND ";
@@ -82,7 +82,7 @@ exports.query = (db, table, obj) => {
     return stmt.get(obj);
 }
 
-exports.queryall = (db, table, obj, additional) => {
+exports.queryall = (table, obj, additional) => {
     var conditions = "";
     for (let key in obj) {
         conditions += "WHERE " + key + "=@" + key + " AND ";

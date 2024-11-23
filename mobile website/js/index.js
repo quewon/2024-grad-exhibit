@@ -1,9 +1,10 @@
 const express = require('express');
 const compression = require('compression');
 const path = require('path');
+const cors = require('cors');
 const sqlite = require('./sqlite.js');
 
-const port = process.env.port || 3000;
+const port = parseInt(process.env.PORT) || 8080;
 const app = express();
 
 //
@@ -13,6 +14,7 @@ const app = express();
 
 //
 
+app.use(cors({origin: '*'}));
 app.use(compression({ level: 1 }));
 app.use('/photos', express.static(path.join(__dirname, '../photos')));
 app.use('/', express.static(path.join(__dirname, '../public')));
@@ -42,8 +44,9 @@ app.post('/upload', (req, res) => {
         } else {
             try {
                 // add to database
-                var result = sqlite.insert(sqlite.db, "photos", {
-                    path: req.file.path
+                var result = sqlite.insert("photos", {
+                    path: req.file.path,
+                    position: "{x:0, y:0}"
                 })
 
                 var photo_id = result.lastInsertRowid;
@@ -65,11 +68,21 @@ app.post('/upload', (req, res) => {
     })
 })
 
+app.post('/update', upload, (req, res) => {
+    for (let data of JSON.parse(req.body.photos)) {
+        var result = sqlite.update("photos", {
+            photo_id: data.photo_id
+        }, {
+            position: data.position
+        });
+    }
+})
+
 app.get('/photos', (req, res) => {
-    var photos_object = sqlite.queryall(sqlite.db, "photos", {});
+    var photos_object = sqlite.queryall("photos", {});
     res.send({ body: photos_object });
 })
 
 app.listen(port, () => {
-    console.log(`server listening on port ${port}.`)
+    console.log(`server listening on port ${port}.`);
 })
