@@ -109,7 +109,7 @@
                     let y = box.top / window.innerHeight;
                     images[this.dataset.photo_id].position = "{x:" + x + ",y:" + y + "}";
                 } else {
-                    images[this.dataset.photo_id].position = "{}";
+                    images[this.dataset.photo_id].position = "{x:null}";
                 }
                 images[this.dataset.photo_id].needs_update = true;
                 update();

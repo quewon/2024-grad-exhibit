@@ -68,7 +68,7 @@ app.post('/upload', (req, res) => {
 
 app.post('/update', upload, (req, res) => {
     for (let data of JSON.parse(req.body.photos)) {
-        var result = sqlite.update("photos", {
+        sqlite.update("photos", {
             photo_id: data.photo_id
         }, {
             position: data.position
