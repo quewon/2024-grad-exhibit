@@ -51,7 +51,7 @@ app.post('/upload', (req, res) => {
                 // add to database
                 var result = sqlite.insert("photos", {
                     path: req.file.path,
-                    position: "{x:0, y:0}"
+                    position: "{x:null}"
                 })
 
                 var photo_id = result.lastInsertRowid;
