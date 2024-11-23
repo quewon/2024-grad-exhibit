@@ -21,8 +21,7 @@
 </body>
 
 <script>
-    // const server = 'http://localhost:8080';
-    const server = 'https://mobilewebsite-332813493951.asia-northeast3.run.app';
+    const server = 'https://digitalgarden.404.mn';
 
     var images = {};
     var image_elements = {};
@@ -47,7 +46,8 @@
 
             await fetch(server + '/update', {
                 method: 'POST',
-                body
+                body,
+                mode: 'cors'
             })
             .then(() => console.log("updated server"))
             .catch(err => console.log(err));
@@ -81,8 +81,6 @@
                 }
             }
         }
-
-        setTimeout(update, 1000);
     }
 
     function create_image(id, src) {
@@ -101,9 +99,10 @@
                 }
             }.bind(img);
 
-            img.oncontextmenu = function() {
+            img.oncontextmenu = function(e) {
+                e.preventDefault();
                 this.classList.toggle("invisible");
-                if (this.classList.includes("invisible")) {
+                if (this.classList.contains("invisible")) {
                     let box = this.getBoundingClientRect();
                     let x = box.left / window.innerWidth;
                     let y = box.top / window.innerHeight;

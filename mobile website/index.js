@@ -1,7 +1,6 @@
 const express = require('express');
 const compression = require('compression');
 const path = require('path');
-const cors = require('cors');
 const sqlite = require('./js/sqlite.js');
 
 const port = parseInt(process.env.PORT) || 8080;
@@ -14,7 +13,6 @@ const app = express();
 
 //
 
-app.use(cors({origin: '*'}));
 app.use(compression({ level: 1 }));
 app.use('/photos', express.static(path.join(__dirname, 'photos')));
 app.use('/', express.static(path.join(__dirname, 'public')));
