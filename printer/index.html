@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRINTER</title>
+</head>
+<body>
+
+    <div id="qrcode"></div>
+
+</body>
+
+<script src="/qrcode.js"></script>
+<script>
+
+    const server = 'https://digitalgarden.404.mn';
+
+    async function poll() {
+        var json = await fetch(server + '/photos', {
+            method: 'GET'
+        })
+        .then(res => res.json())
+        .catch(err => console.log(err));
+
+        var printed = [];
+
+        if (json && json.body) {
+            for (let image of json.body) {
+                if (image.printed == 0) {
+                    // print image
+
+                    // print qr code on back
+                    var qr = new QRCode(document.getElementById("qrcode"), {
+                        text: image.photo_id,
+                        width: 128,
+                        height: 128,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
+                    
+                    // printed.push({ photo_id: image.photo_id });
+                }
+            }
+        }
+
+        if (printed.length > 0) {
+            var body = new FormData();
+            body.append("photos", JSON.stringify(printed));
+            await fetch(server + '/set-printed', {
+                method: 'POST',
+                body
+            })
+            .catch(err => console.log(err));
+        }
+
+        setTimeout(poll, 500);
+    }
+
+    poll();
+    
+</script>
+
+</html>
