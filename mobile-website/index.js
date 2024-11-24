@@ -83,6 +83,16 @@ app.post('/update', upload, (req, res) => {
     }
 })
 
+app.post('/set-printed', upload, (req, res) => {
+    for (let data of JSON.parse(req.body.photos)) {
+        sqlite.update("photos", {
+            photo_id: data.photo_id
+        }, {
+            printed: 1
+        });
+    }
+})
+
 app.get('/photos', (req, res) => {
     var photos_object = sqlite.queryall("photos", {});
     res.send({ body: photos_object });

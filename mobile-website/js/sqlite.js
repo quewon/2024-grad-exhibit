@@ -16,6 +16,7 @@ if (!fs.existsSync('db/db.db')) {
             "photo_id"	INTEGER,
             "position" TEXT,
             "path"	TEXT,
+            "printed"	INTEGER,
             PRIMARY KEY("photo_id")
         )
     `);
