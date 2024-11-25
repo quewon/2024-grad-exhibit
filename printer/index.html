@@ -29,9 +29,9 @@
         socket.on('photos', photos => {
             code_container.innerHTML = "";
             for (let data of photos) {
-                code_container.innerHTML += "<div>" + photo_id + "</div>";
+                code_container.innerHTML += "<div>" + data.photo_id + "</div>";
                 var qr = new QRCode(code_container, {
-                    text: "DG_"+photo_id,
+                    text: "DG_"+data.photo_id,
                     width: 128,
                     height: 128,
                     colorDark : "#000000",
