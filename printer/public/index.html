@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRINTER</title>
+    <style>
+        #qrcode {
+            display: flex;
+            gap: 1em;
+            flex-wrap: wrap;
+        }
+        #qrcode img {
+            width: 5em
+        }
+        #qrcode > div {
+            cursor: pointer;
+            border: 3px solid red;
+        }
+        #qrcode > div.printed {
+            border-color: transparent;
+        }
+
+        #print-area {
+            display: none;
+        }
+
+        @media print {
+            @page {
+                size: 4in 6in;
+                margin: 0;
+            }
+
+            html, body {
+                margin: 0;
+                height: 100%;
+                overflow: hidden;
+            }
+            
+            #qrcode {
+                display: none;
+            }
+
+            #print-area {
+                display: flex;
+                height: 100%;
+                align-items: center;
+                justify-content: center;
+            }
+            #print-area > img {
+                width: 100%;
+                aspect-ratio: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="qrcode"></div>
+    <div id="print-area">
+        <img src="" alt="">
+    </div>
+
+</body>
+
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
+<script src="qrcode.js"></script>
+<script>
+    const server = 'https://digitalgarden.404.mn';
+    // const server = 'http://localhost:8080';
+    const socket = io(server);
+
+    const code_container = document.getElementById("qrcode");
+    const print_image = document.getElementById("print-area").querySelector("img");
+    
+    socket.on('connect', () => {
+        socket.emit('request_photos');
+
+        socket.on('photos', photos => {
+            while (code_container.firstElementChild) {
+                code_container.firstElementChild.remove();
+            }
+            
+            for (let data of photos) {
+                var div = document.createElement("div");
+                var label = document.createElement("div");
+                label.textContent = data.photo_id;
+                div.appendChild(label);
+
+                var qr = new QRCode(div, {
+                    render: 'image',
+                    text: "DG_"+data.photo_id,
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+
+                var img = document.createElement("img");
+                img.src = server + '/' + data.path;
+                img.className = "photo";
+                div.appendChild(img);
+
+                div.dataset.photo_id = data.photo_id;
+                code_container.prepend(div);
+
+                div.onclick = () => {
+                    print_photo(data.photo_id, data.path)
+                }
+
+                if (!data.printed) {
+                    print_photo(data.photo_id, data.path)
+                } else {
+                    div.classList.add("printed");
+                }
+            }
+        })
+    })
+
+    async function print_photo(photo_id, path) {
+        let div = document.querySelector("[data-photo_id='"+photo_id+"']");
+        div.classList.add("printed");
+
+        var qr;
+        await div.querySelector("canvas").toBlob(
+            (blob) => {
+                qr = new File([blob], "qr.jpg");
+            },
+            "image/jpeg",
+            1
+        )
+
+        var photo;
+        await fetch(div.querySelector("img.photo").src)
+        .then(async res => {
+            const contentType = res.headers.get('content-type');
+            const blob = await res.blob();
+            photo = new File([blob], "photo", { contentType });
+        })
+
+        // post
+
+        let body = new FormData();
+        body.append("files", photo);
+        body.append("files", qr);
+
+        fetch('/print', {
+            method: 'POST',
+            body
+        })
+
+        socket.emit('print_success', photo_id);
+    }
+</script>
+
+</html>

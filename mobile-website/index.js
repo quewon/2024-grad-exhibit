@@ -4,9 +4,12 @@ const path = require('path');
 const cors = require('cors');
 const sqlite = require('./js/sqlite.js');
 
-const port = parseInt(process.env.PORT) || 8080;
+const port = process.env.PORT || 8080;
 const app = express();
 const server = require('http').createServer(app);
+
+//
+
 const io = require('socket.io')(server, {
     cors: {
         origin: "*",
@@ -40,11 +43,6 @@ io.on('connection', socket => {
 
 //
 
-// const printer = require('printer');
-// console.log( printer.getPrinters() );
-
-//
-
 app.use(cors());
 app.use(compression({ level: 1 }));
 app.use('/photos', express.static(path.join(__dirname, 'photos')));
@@ -54,7 +52,7 @@ app.use('/', express.static(path.join(__dirname, 'public')));
     app.use(express.urlencoded({ extended: false }));
 
 app.get('/', (req, res) => {
-    res.sendFile('public/index.html')
+    res.sendFile('index.html')
 })
 
 //

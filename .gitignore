@@ -1,7 +1,8 @@
 mobile-website/node_modules
-printer/node_modules
 mobile-website/db
 mobile-website/photos
+printer/node_modules
+printer/media/*
 .DS_Store
 ._.DS_Store
 **/.DS_Store
