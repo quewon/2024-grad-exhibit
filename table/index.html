@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMAGE TABLE</title>
+    <style>
+        img {
+            position: absolute;
+            width: 10%;
+            transform: translate(-50%, -50%);
+        }
+
+        .invisible {
+            opacity: .2;
+        }
+    </style>
+</head>
+<body>
+    
+</body>
+
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
+<script>
+    const server = 'https://digitalgarden.404.mn';
+    // const server = 'http://localhost:8080';
+    const socket = io(server);
+
+    var photos = [];
+    var photo_elements = {};
+
+    function update_images(updated_photos) {
+        for (let data of updated_photos) {
+            if (!photo_elements[data.photo_id]) {
+                create_image(data.photo_id, data.path)
+                .then(img => {
+                    let position = data.position.split(/[:,}]/g);
+                    if (position.length > 4) {
+                        let x = Number(position[1]);
+                        let y = Number(position[3]);
+                        img.style.left = (x * window.innerWidth) + "px";
+                        img.style.top = (y * window.innerHeight) + "px";
+                        console.log(data.photo_id, x, y);
+                    } else {
+                        img.classList.add("invisible");
+                        console.log(data.photo_id, "off table");
+                    }
+
+                    photo_elements[data.photo_id] = img;
+                })
+            }
+
+            photo_elements[data.photo_id] = true;
+        }
+        photos = updated_photos;
+    }
+
+    socket.on('connect', () => {
+        socket.emit('request_photos');
+        socket.on('photos', photos => {
+            update_images(photos);
+        })
+        socket.on('position_update', updated_photos => {
+            for (let photo of updated_photos) {
+                let image = document.querySelector("[data-photo_id='" + photo.photo_id + "']");
+                if (image) {
+                    if (photo.position.includes("x:null")) {
+                        image.classList.add("invisible");
+                    } else {
+                        image.classList.remove("invisible");
+                        let position = photo.position.split(/[:,}]/g);
+                        let x = Number(position[1]);
+                        let y = Number(position[3]);
+                        image.style.left = (x * window.innerWidth) + "px";
+                        image.style.top = (y * window.innerHeight) + "px";
+                    }
+                }
+            }
+            updated_photos = photos;
+        })
+    })
+
+    var images = {};
+    var image_elements = {};
+    var dragging_image;
+
+    function update(photo_id, position) {
+        socket.emit('update_position', {
+            photo_id,
+            position
+        });
+    }
+
+    function create_image(id, src) {
+        return new Promise((resolve, reject) => {
+            let img = new Image();
+            img.onload = () => {
+                document.body.appendChild(img);
+                resolve(img);
+            };
+            img.onerror = reject;
+
+            img.onmousedown = function() {
+                dragging_image = this;
+                document.onmouseup = function() {
+                    dragging_image = null;
+                }
+            }.bind(img);
+
+            img.oncontextmenu = function(e) {
+                e.preventDefault();
+                this.classList.toggle("invisible");
+                update(this.dataset.photo_id, get_position(this));
+            }.bind(img);
+
+            img.draggable = false;
+
+            img.dataset.needs_update = "false";
+            img.dataset.photo_id = id;
+            img.src = server + '/' + src;
+        })
+    }
+
+    document.onmousemove = e => {
+        if (dragging_image) {
+            dragging_image.style.left = e.pageX + "px";
+            dragging_image.style.top = e.pageY + "px";
+            update(dragging_image.dataset.photo_id, get_position(dragging_image));
+        }
+    }
+
+    function get_position(element) {
+        if (!element.classList.contains("invisible")) {
+            let box = element.getBoundingClientRect();
+            let x = (box.left + box.width/2) / window.innerWidth;
+            let y = (box.top + box.height/2) / window.innerHeight;
+            return "{x:" + x + ",y:" + y + "}";
+        } else {
+            return "{x:null}";
+        }
+    }
+</script>
+
+</html>

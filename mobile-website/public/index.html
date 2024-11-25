@@ -55,7 +55,7 @@
             font-size: 20px;
         }
         #main img {
-            width: 80%;
+            width: 15em;
         }
 
         .hidden {
@@ -315,10 +315,13 @@
     //
 
     var returned_to_home = true;
+    var on_intro_page = false;
 
     const pages = document.querySelectorAll(".page");
 
     async function goto(id) {
+        on_intro_page = null;
+        
         for (let page of pages) {
             page.classList.add("hidden");
         }
@@ -334,6 +337,16 @@
             await write("left", "원하는 이미지를 골라주세요!");
         } else {
             returned_to_home = true;
+        }
+
+        if (id == 'intro') {
+            on_intro_page = new Date();
+            setTimeout(() => {
+                var now = new Date();
+                if (on_intro_page && now - on_intro_page >= 1000 * 8) {
+                    goto('chat');
+                }
+            }, 8000);
         }
     }
 

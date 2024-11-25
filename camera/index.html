@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAMERA</title>
+    <style>
+        html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        video, .canvas-wrapper {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+        }
+        video {
+            background: black;
+        }
+        .canvas-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .canvas-wrapper canvas {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <video></video>
+    <div class="canvas-wrapper">
+        <canvas></canvas>
+    </div>
+    
+</body>
+
+<script src="js/jsQR.js"></script>
+<script src="js/main.js"></script>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
+<script>
+    const server = 'https://digitalgarden.404.mn';
+    // const server = 'http://localhost:8080';
+    const socket = io(server);
+
+    var photos = [];
+
+    socket.on('connect', () => {
+        socket.emit('request_photos');
+
+        socket.on('photos', updated_photos => {
+            photos = updated_photos;
+        })
+
+        init_camera();
+    })
+</script>
+
+</html>

@@ -11,55 +11,40 @@
 
 </body>
 
-<script src="/qrcode.js"></script>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
+<script src="qrcode.js"></script>
 <script>
-
     const server = 'https://digitalgarden.404.mn';
+    // const server = 'http://localhost:8080';
+    const socket = io(server);
+    
+    socket.on('connect', () => {
+        socket.emit('request_photos');
 
-    async function poll() {
-        var json = await fetch(server + '/photos', {
-            method: 'GET'
-        })
-        .then(res => res.json())
-        .catch(err => console.log(err));
-
-        var printed = [];
-
-        if (json && json.body) {
-            for (let image of json.body) {
-                if (image.printed == 0) {
-                    // print image
-
-                    // print qr code on back
-                    var qr = new QRCode(document.getElementById("qrcode"), {
-                        text: image.photo_id,
-                        width: 128,
-                        height: 128,
-                        colorDark : "#000000",
-                        colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.H
-                    });
-                    
-                    // printed.push({ photo_id: image.photo_id });
+        socket.on('photos', photos => {
+            for (let data of photos) {
+                if (!data.printed) {
+                    print(data.photo_id, data.path)
                 }
             }
-        }
+        })
+    })
 
-        if (printed.length > 0) {
-            var body = new FormData();
-            body.append("photos", JSON.stringify(printed));
-            await fetch(server + '/set-printed', {
-                method: 'POST',
-                body
-            })
-            .catch(err => console.log(err));
-        }
+    function print(photo_id, path) {
+        // print image
 
-        setTimeout(poll, 500);
+        // print qr code on back
+        var qr = new QRCode(document.getElementById("qrcode"), {
+            text: "DG_"+photo_id,
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+        
+        socket.emit('print_success', photo_id);
     }
-
-    poll();
-    
 </script>
 
 </html>

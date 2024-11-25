@@ -6,6 +6,37 @@ const sqlite = require('./js/sqlite.js');
 
 const port = parseInt(process.env.PORT) || 8080;
 const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
+
+io.on('connection', socket => {
+    socket.on('request_photos', () => {
+        socket.emit('photos', sqlite.queryall("photos", {}));
+    })
+
+    socket.on('update_position', data => {
+        console.log(data);
+        sqlite.update("photos", {
+            photo_id: data.photo_id
+        }, {
+            position: data.position
+        });
+        io.emit('position_update', sqlite.queryall("photos", {}));
+    })
+
+    socket.on('print_success', photo_id => {
+        sqlite.update("photos", {
+            photo_id: photo_id
+        }, {
+            printed: 1
+        });
+    })
+});
 
 //
 
@@ -44,18 +75,15 @@ app.post('/upload', (req, res) => {
         } else {
             try {
                 // add to database
-                var result = sqlite.insert("photos", {
+                sqlite.insert("photos", {
                     path: req.file.path,
                     position: "{x:null}"
                 })
 
-                var photo_id = result.lastInsertRowid;
-
-                // print
+                io.emit('photos', sqlite.queryall("photos", {}));
 
                 res.send({
                     message: 'success',
-                    photo_id: photo_id,
                     path: req.file.path
                 })
             }
@@ -68,31 +96,11 @@ app.post('/upload', (req, res) => {
     })
 })
 
-app.post('/update', upload, (req, res) => {
-    for (let data of JSON.parse(req.body.photos)) {
-        sqlite.update("photos", {
-            photo_id: data.photo_id
-        }, {
-            position: data.position
-        });
-    }
-})
-
-app.post('/set-printed', upload, (req, res) => {
-    for (let data of JSON.parse(req.body.photos)) {
-        sqlite.update("photos", {
-            photo_id: data.photo_id
-        }, {
-            printed: 1
-        });
-    }
-})
-
 app.get('/photos', (req, res) => {
     var photos_object = sqlite.queryall("photos", {});
     res.send({ body: photos_object });
 })
 
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`server listening on port ${port}.`);
 })
