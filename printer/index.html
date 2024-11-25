@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PRINTER</title>
+    <style>
+        #qrcode > div {
+            margin-bottom: 1em;
+        }
+    </style>
 </head>
 <body>
 
@@ -30,11 +35,14 @@
         })
     })
 
+    var code_container = document.getElementById("qrcode");
+
     function print(photo_id, path) {
         // print image
 
         // print qr code on back
-        var qr = new QRCode(document.getElementById("qrcode"), {
+        code_container.innerHTML += "<div>" + photo_id + "</div>";
+        var qr = new QRCode(code_container, {
             text: "DG_"+photo_id,
             width: 128,
             height: 128,
