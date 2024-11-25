@@ -2,16 +2,14 @@ var video = document.querySelector("video");
 var canvas = document.querySelector("canvas");
 var context = canvas.getContext("2d");
 
+var qr_engine = QrScanner.createQrEngine(QrScanner.WORKER_PATH);
+var reusable_canvas = document.createElement("canvas");
+
 var codes_history = {};
 
 function init_camera() {
-    window.onresize = () => {
-        canvas.height = video.videoHeight;
-        canvas.width = video.videoWidth;
-    }
-    
     // Use facingMode: environment to attempt to get the front camera on phones
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(function(stream) {
         video.srcObject = stream;
         video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
         video.play();
@@ -28,37 +26,40 @@ function init_camera() {
             }
         });
     });
+
+    window.onresize = () => {
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+    }
 }
 
-function drawQuad(location) {
+function drawQuad(points) {
     context.beginPath();
-    context.moveTo(location.topLeftCorner.x, location.topLeftCorner.y);
-    context.lineTo(location.topRightCorner.x, location.topRightCorner.y);
-    context.lineTo(location.bottomRightCorner.x, location.bottomRightCorner.y);
-    context.lineTo(location.bottomLeftCorner.x, location.bottomLeftCorner.y);
+    context.moveTo(points[0].x, points[0].y);
+    context.lineTo(points[1].x, points[1].y);
+    context.lineTo(points[2].x, points[2].y);
+    context.lineTo(points[3].x, points[3].y);
     context.closePath();
 }
 
-function tick() {
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+async function tick() {
+    // context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     context.fillStyle = "white";
 
-    var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     var codes = {};
-
-    for (let i=0; i<35; i++) {
-        var code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "dontInvert",
-        });
-        if (code && code.data != '') {
-            drawQuad(code.location);
+    
+    do {
+        var result = await QrScanner.scanImage(canvas, {
+            canvas: reusable_canvas,
+            qrEngine: qr_engine
+        }).catch(error => {});
+        if (typeof result != "undefined") {
+            drawQuad(result.cornerPoints);
             context.fill();
-            codes[code.data] = code.location;
-        } else {
-            break;
+            codes[result.data] = result.cornerPoints;
         }
-    }
+    } while (typeof result != "undefined")
 
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
@@ -67,8 +68,8 @@ function tick() {
     var now = new Date();
 
     for (let code in codes) {
-        let location = codes[code];
-        drawQuad(location);
+        let points = codes[code];
+        drawQuad(points);
         context.stroke();
 
         if (!codes_history[code]) {
@@ -76,8 +77,8 @@ function tick() {
         }
         codes_history[code].previous_position = codes_history[code].position;
         codes_history[code].position = {
-            x: (location.topLeftCorner.x + location.bottomRightCorner.x) / 2,
-            y: (location.topLeftCorner.y + location.bottomRightCorner.y) / 2
+            x: (points[1].x + points[3].x) / 2,
+            y: (points[1].y + points[3].y) / 2
         }
         codes_history[code].last_updated = now;
     }
