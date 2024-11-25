@@ -27,7 +27,18 @@
         socket.emit('request_photos');
 
         socket.on('photos', photos => {
+            code_container.innerHTML = "";
             for (let data of photos) {
+                code_container.innerHTML += "<div>" + photo_id + "</div>";
+                var qr = new QRCode(code_container, {
+                    text: "DG_"+photo_id,
+                    width: 128,
+                    height: 128,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+
                 if (!data.printed) {
                     print(data.photo_id, data.path)
                 }
@@ -41,7 +52,6 @@
         // print image
 
         // print qr code on back
-        code_container.innerHTML += "<div>" + photo_id + "</div>";
         var qr = new QRCode(code_container, {
             text: "DG_"+photo_id,
             width: 128,
