@@ -20,6 +20,9 @@
         #qrcode > div.printed {
             border-color: transparent;
         }
+        #qrcode > div.print-queued {
+            border-color: orange;
+        }
 
         #print-area {
             display: none;
@@ -114,39 +117,50 @@
         })
     })
 
+    var print_delay = 20;
+    var print_queued = 0;
+
     async function print_photo(photo_id, path) {
         let div = document.querySelector("[data-photo_id='"+photo_id+"']");
-        div.classList.add("printed");
-
-        var qr;
-        await div.querySelector("canvas").toBlob(
-            (blob) => {
-                qr = new File([blob], "qr.jpg");
-            },
-            "image/jpeg",
-            1
-        )
-
-        var photo;
-        await fetch(div.querySelector("img.photo").src)
-        .then(async res => {
-            const contentType = res.headers.get('content-type');
-            const blob = await res.blob();
-            photo = new File([blob], "photo", { contentType });
-        })
-
-        // post
-
-        let body = new FormData();
-        body.append("files", photo);
-        body.append("files", qr);
-
-        fetch('/print', {
-            method: 'POST',
-            body
-        })
-
+        div.classList.add("print-queued");
         socket.emit('print_success', photo_id);
+
+        setTimeout(async () => {
+            div.classList.remove("print-queued");
+            div.classList.add("printed");
+
+            var qr;
+            await div.querySelector("canvas").toBlob(
+                (blob) => {
+                    qr = new File([blob], "qr.jpg");
+                },
+                "image/jpeg",
+                1
+            )
+
+            var photo;
+            await fetch(div.querySelector("img.photo").src)
+            .then(async res => {
+                const contentType = res.headers.get('content-type');
+                const blob = await res.blob();
+                photo = new File([blob], "photo", { contentType });
+            })
+
+            // post
+
+            let body = new FormData();
+            body.append("files", photo);
+            body.append("files", qr);
+
+            fetch('/print', {
+                method: 'POST',
+                body
+            })
+
+            print_queued--;
+        }, print_delay * print_queued * 1000)
+
+        print_queued++;
     }
 </script>
 

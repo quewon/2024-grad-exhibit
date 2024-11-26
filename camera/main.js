@@ -102,7 +102,7 @@ async function tick() {
                 }
             }
         } else {
-            socket.emit('update_position', { photo_id: code.replace("DG_", ""), position: "{x:null}" });
+            // socket.emit('update_position', { photo_id: code.replace("DG_", ""), position: "{x:null}" });
             delete codes_history[code];
         }
     }
