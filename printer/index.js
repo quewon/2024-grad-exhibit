@@ -24,31 +24,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage }).array('files', 2);
 
-const PDFDocument = require('pdfkit');
-const fs = require('fs');
-
 app.post('/print', upload, (req, res) => {
-    // create pdf
-
-    const doc = new PDFDocument({ size: [288, 432] });
-    doc.pipe(fs.createWriteStream('media/printme.pdf'));
-    doc.image('media/photo', {
-        x: 0,
-        y: 0,
-        fit: [288, 432],
-        align: 'center',
-        valign: 'center'
-    });
-    doc.addPage();
-    doc.image('media/qr.jpg', {
-        x: 44,
-        y: 116,
-        fit: [200, 200],
-        align: 'center',
-        valign: 'center',
-    });
-    doc.end();
-
     // run python script
     spawn('python', ['./print.py']);
 })

@@ -123,7 +123,6 @@
     async function print_photo(photo_id, path) {
         let div = document.querySelector("[data-photo_id='"+photo_id+"']");
         div.classList.add("print-queued");
-        socket.emit('print_success', photo_id);
 
         setTimeout(async () => {
             div.classList.remove("print-queued");
@@ -161,6 +160,7 @@
         }, print_delay * print_queued * 1000)
 
         print_queued++;
+        socket.emit('print_success', photo_id);
     }
 </script>
 
